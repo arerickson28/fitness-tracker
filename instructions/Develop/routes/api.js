@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const Workout = require("../models");
+const { Workout } = require("../models");
 
 
 router.get("/workouts", async (req, res) => {
@@ -13,8 +13,8 @@ router.get("/workouts", async (req, res) => {
         ]);
         res.json(data);
     } catch {
-        console.log(err);
         res.status(400).json(err);
+        console.log(err);
     }
 });
 
@@ -44,5 +44,24 @@ router.put("/workouts/:id", async ({ body, params }, res) => {
         res.status(400).json(err)
     }
 });
+
+router.get("/workouts/range", async (req, res) => {
+    try {
+        const data = await Workout.aggregate([
+            { $sort: { _id: -1 } },
+            { $limit: 7 },
+            { $sort: { _id: 1 } },
+            {
+                $addFields: { totalDuration: {$sum: "$exercises.duration"} }
+            }
+        ]);
+        console.log(data);
+        res.json(data);
+    } catch {
+        res.status(400).json(err);
+        console.log(err);
+    }
+})
+
 
 module.exports = router
